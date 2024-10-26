@@ -48,7 +48,6 @@ class _SetupScreenState extends State<SetupScreen> {
       if (Platform.isAndroid) Permission.manageExternalStorage,
     ].request();
 
-    // Check if any permission was denied
     if (statuses.values.any((status) => status.isDenied)) {
       if (mounted) {
         showDialog(
