@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:io';
 // import '../../widgets/common/custom_button.dart';
+import '../../../core/permission_utils.dart';
 import '../setup/widgets/folder_list.dart';
 import '../setup/widgets/time_picker.dart';
 
@@ -24,6 +25,7 @@ class _SetupScreenState extends State<SetupScreen> {
   String? deviceName;
   String? pairCode;
   bool isLoading = false;
+  bool hasPermissions = false;
 
   @override
   void initState() {
@@ -33,41 +35,51 @@ class _SetupScreenState extends State<SetupScreen> {
 
   Future<void> _initializeSetup() async {
     setState(() => isLoading = true);
-    await _checkPermissions();
-    await _loadSavedSettings();
-    await _getDeviceName();
+    hasPermissions = await PermissionUtils.checkPermissions();
+    if (hasPermissions) {
+      await _loadSavedSettings();
+      await _getDeviceName();
+    }
     setState(() => isLoading = false);
   }
 
-  Future<void> _checkPermissions() async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.storage,
-      Permission.photos,
-      Permission.location,
-      if (Platform.isAndroid) Permission.accessMediaLocation,
-      if (Platform.isAndroid) Permission.manageExternalStorage,
-    ].request();
+  Future<void> _requestPermissions() async {
+    final granted = await PermissionUtils.requestPermissions();
 
-    if (statuses.values.any((status) => status.isDenied)) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Permissions Required'),
-            content: const Text(
-                'This app needs access to storage and location to function properly. Please grant the required permissions in settings.'),
-            actions: [
-              TextButton(
-                child: const Text('Open Settings'),
-                onPressed: () {
-                  openAppSettings();
-                  Navigator.pop(context);
-                },
-              ),
-            ],
+    setState(() {
+      hasPermissions = granted;
+    });
+
+    if (!granted && mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Permissions Required'),
+          content: const Text(
+            'This app needs access to:\n\n'
+                '• Storage (to access and sync photos)\n'
+                '• Location (to detect WiFi network)\n\n'
+                'Please grant the required permissions in settings to continue.',
           ),
-        );
-      }
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              child: const Text('Open Settings'),
+              onPressed: () {
+                openAppSettings();
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      );
+    } else if (granted) {
+      await _loadSavedSettings();
+      await _getDeviceName();
     }
   }
 
@@ -130,7 +142,6 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   void _generatePairCode() {
-    // Generate a 6-digit random code
     final code = (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
     setState(() {
       pairCode = code;
@@ -145,6 +156,43 @@ class _SetupScreenState extends State<SetupScreen> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
+    if (!hasPermissions) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Setup Required'),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.folder_open,
+                  size: 64,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Permission Required',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Photo Sync needs access to storage to sync your photos and location permission to detect when devices are on the same WiFi network.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _requestPermissions,
+                  child: const Text('Grant Permissions'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
 
     return Scaffold(
       appBar: AppBar(
