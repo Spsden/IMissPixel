@@ -5,8 +5,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:io';
+
 // import '../../widgets/common/custom_button.dart';
 import '../../../core/permission_utils.dart';
+import '../file_sync/file_sync_screen.dart';
 import '../setup/widgets/folder_list.dart';
 import '../setup/widgets/time_picker.dart';
 
@@ -58,9 +60,9 @@ class _SetupScreenState extends State<SetupScreen> {
           title: const Text('Permissions Required'),
           content: const Text(
             'This app needs access to:\n\n'
-                '• Storage (to access and sync photos)\n'
-                '• Location (to detect WiFi network)\n\n'
-                'Please grant the required permissions in settings to continue.',
+            '• Storage (to access and sync photos)\n'
+            '• Location (to detect WiFi network)\n\n'
+            'Please grant the required permissions in settings to continue.',
           ),
           actions: [
             TextButton(
@@ -126,7 +128,8 @@ class _SetupScreenState extends State<SetupScreen> {
         dialogTitle: 'Select folder to sync',
       );
 
-      if (selectedDirectory != null && !selectedFolders.contains(selectedDirectory)) {
+      if (selectedDirectory != null &&
+          !selectedFolders.contains(selectedDirectory)) {
         setState(() {
           selectedFolders.add(selectedDirectory);
         });
@@ -142,7 +145,8 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   void _generatePairCode() {
-    final code = (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
+    final code =
+        (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
     setState(() {
       pairCode = code;
     });
@@ -193,7 +197,6 @@ class _SetupScreenState extends State<SetupScreen> {
       );
     }
 
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Photo Sync Setup'),
@@ -222,7 +225,9 @@ class _SetupScreenState extends State<SetupScreen> {
                     ),
                     const SizedBox(height: 8),
                     SwitchListTile(
-                      title: Text(isDeviceA ? 'Receiver (Phone A)' : 'Sender (Phone B)'),
+                      title: Text(isDeviceA
+                          ? 'Receiver (Phone A)'
+                          : 'Sender (Phone B)'),
                       subtitle: Text(isDeviceA
                           ? 'This device will receive and store photos'
                           : 'This device will send photos to Phone A'),
@@ -298,7 +303,8 @@ class _SetupScreenState extends State<SetupScreen> {
                     ),
                     SwitchListTile(
                       title: const Text('Auto-Connect'),
-                      subtitle: const Text('Automatically connect when on same WiFi'),
+                      subtitle:
+                          const Text('Automatically connect when on same WiFi'),
                       value: autoConnect,
                       onChanged: (value) {
                         setState(() {
@@ -331,7 +337,8 @@ class _SetupScreenState extends State<SetupScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: Text('Pair Code: ${pairCode ?? 'Not generated'}'),
+                            child: Text(
+                                'Pair Code: ${pairCode ?? 'Not generated'}'),
                           ),
                           ElevatedButton(
                             onPressed: _generatePairCode,
@@ -378,23 +385,38 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Future<void> _validateAndProceed() async {
-    // Validation logic
     if (!isDeviceA && selectedFolders.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one folder to sync')),
+        const SnackBar(
+            content: Text('Please select at least one folder to sync')),
       );
       return;
     }
 
     if (pairCode == null || pairCode!.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter/generate a valid pair code')),
+        const SnackBar(
+            content: Text('Please enter/generate a valid pair code')),
       );
       return;
     }
-
-    // Proceed to next screen or start service
-    // Navigator.pushReplacement(...);
+    if (isDeviceA) {
+      // For Device A (Server)
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>  FileSyncScreen(isDeviceA: true,pairCode: pairCode),
+        ),
+      );
+    } else {
+      // For Device B (Client)
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>  FileSyncScreen(isDeviceA: false,pairCode: pairCode),
+        ),
+      );
+    }
   }
 
   void _showHelp(BuildContext context) {
