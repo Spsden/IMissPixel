@@ -134,6 +134,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
           ipAddress: client.ipAddress,
           connectedAt: client.connectedAt,
           isActive: false,
+          clientName: client.clientName
         );
       }
       return client;

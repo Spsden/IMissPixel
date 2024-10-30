@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:i_miss_pixel/core/random_name_gen.dart';
 import 'package:i_miss_pixel/data/models/client_connection.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:dio/dio.dart';
@@ -158,12 +159,13 @@ class WebSocketService {
     final socket = await WebSocketTransformer.upgrade(request);
     final clientId = DateTime.now().toString();
     final ipAddress = request.connectionInfo?.remoteAddress.address ??'unknown';
+    final String clientName = RandomNameGenerator.generateRandomName();
 
     final client = ClientConnection(
-      id: clientId,
-      ipAddress: ipAddress,
-      connectedAt: DateTime.now()
-    );
+        id: clientId,
+        ipAddress: ipAddress,
+        connectedAt: DateTime.now(),
+        clientName: clientName);
 
     _connectedClients[socket] = client;
     onEvent?.call('clientConnected', client);

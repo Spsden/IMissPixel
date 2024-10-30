@@ -3,12 +3,14 @@ class ClientConnection {
   final String ipAddress;
   final DateTime connectedAt;
   final bool isActive;
+  final String clientName;
 
   ClientConnection({
     required this.id,
     required this.ipAddress,
     required this.connectedAt,
     this.isActive = true,
+    required this.clientName,
   });
 
   Map<String, dynamic> toJson() => {
@@ -16,6 +18,7 @@ class ClientConnection {
     'ipAddress': ipAddress,
     'connectedAt': connectedAt.toIso8601String(),
     'isActive': isActive,
+    'clientName':clientName
   };
 
   factory ClientConnection.fromJson(Map<String, dynamic> json) {
@@ -24,6 +27,7 @@ class ClientConnection {
       ipAddress: json['ipAddress'],
       connectedAt: DateTime.parse(json['connectedAt']),
       isActive: json['isActive'],
+      clientName: json['clientName']
     );
   }
 }

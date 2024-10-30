@@ -19,7 +19,7 @@ Widget buildClientsList(List<ClientConnection> clients) {
             Icons.computer,
             color: client.isActive ? Colors.green : Colors.grey,
           ),
-          title: Text('Client ${client.id}'),
+          title: Text('Client ${client.clientName}',style: const TextStyle(fontWeight: FontWeight.bold),),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
