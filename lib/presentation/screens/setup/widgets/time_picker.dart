@@ -13,9 +13,11 @@ class TimePickerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: const Icon(Icons.access_time),
-      title: const Text('Sync Time'),
-      subtitle: Text(initialTime.format(context)),
+      leading: const Icon(Icons.access_time,color: Colors.white,),
+      title: const Text('Sync Time',style: TextStyle(
+          color: Colors.white)),
+      subtitle: Text(initialTime.format(context),style: const TextStyle(
+          color: Colors.white)),
       onTap: () async {
         final TimeOfDay? picked = await showTimePicker(
           context: context,

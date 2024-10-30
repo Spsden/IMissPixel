@@ -25,6 +25,7 @@ class IMissPixel extends StatelessWidget {
         title: 'Photo Sync',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          scaffoldBackgroundColor: const Color(0xFF121212),
           useMaterial3: true,
         ),
         home: const AppStarter(),

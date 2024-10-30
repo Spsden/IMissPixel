@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:i_miss_pixel/presentation/bloc/connection/connection_state.dart';
 import '../../../../data/models/server_connection.dart';
 import '../../../bloc/connection/connection_bloc.dart';
 
@@ -18,7 +17,7 @@ class _ServerListWidgetState extends State<ServerListWidget> {
     super.initState();
     context.read<ConnectionBloc>().stream.listen((state) {
       _updateServerList(state.discoveredServers);
-        });
+    });
   }
 
   void _updateServerList(List<ServerConnection> newServers) {
@@ -48,20 +47,32 @@ class _ServerListWidgetState extends State<ServerListWidget> {
     return SizeTransition(
       sizeFactor: animation,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.grey.withOpacity(0.5)),
-          borderRadius: BorderRadius.circular(8.0),
+          color: Colors.grey[850],
+          borderRadius: BorderRadius.circular(12.0),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: ListTile(
           title: Text(
             server.ipAddress,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-          subtitle: Text('Port: ${server.port}'),
+          subtitle: Text(
+            'Port: ${server.port}',
+            style: const TextStyle(color: Colors.white70),
+          ),
           trailing: IconButton(
-            icon: const Icon(Icons.delete),
+            icon: const Icon(Icons.delete, color: Colors.red),
             onPressed: () {
               // Handle delete action
             },
@@ -70,7 +81,6 @@ class _ServerListWidgetState extends State<ServerListWidget> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {

@@ -198,13 +198,13 @@ class _SetupScreenState extends State<SetupScreen> {
     }
 
     return Scaffold(
-      backgroundColor:Color(0xFF121212),
       appBar: AppBar(
-        title:  Text("Let's setup your app",
+        title: Text(
+          "Let's setup your app",
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
         ),
         actions: [
           IconButton(
@@ -227,8 +227,10 @@ class _SetupScreenState extends State<SetupScreen> {
                 borderRadius: BorderRadius.circular(12), // Rounded corners
               ),
               color: Theme.of(context).primaryColor,
-              elevation: 4, // Subtle shadow for depth
-              margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 8), // Margin for spacing
+              elevation: 4,
+              // Subtle shadow for depth
+              margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+              // Margin for spacing
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -237,27 +239,31 @@ class _SetupScreenState extends State<SetupScreen> {
                     Text(
                       'Device Role',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold, // Bold for emphasis
-                        color: Colors.white, // Use a color that matches the theme
-                      ),
+                            fontWeight: FontWeight.bold, // Bold for emphasis
+                            color: Colors
+                                .white, // Use a color that matches the theme
+                          ),
                     ),
-                    const SizedBox(height: 12), // Increased spacing for a modern look
+                    const SizedBox(height: 12),
+                    // Increased spacing for a modern look
                     SwitchListTile(
                       title: Text(
                         isDeviceA ? 'Receiver (Phone A)' : 'Sender (Phone B)',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white, // Match text color to theme
-                        ),
+                              color: Colors.white, // Match text color to theme
+                            ),
                       ),
                       subtitle: Text(
                         isDeviceA
                             ? 'This device will receive and store photos'
                             : 'This device will send photos to Phone A',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70, // Subtle color for subtitle
-                        ),
+                              color:
+                                  Colors.white70, // Subtle color for subtitle
+                            ),
                       ),
-                      activeColor: Theme.of(context).colorScheme.inversePrimary, // Use secondary color for the switch
+                      activeColor: Theme.of(context).scaffoldBackgroundColor,
+                      // Use secondary color for the switch
                       value: isDeviceA,
                       onChanged: (value) {
                         setState(() {
@@ -308,7 +314,13 @@ class _SetupScreenState extends State<SetupScreen> {
             ],
 
             // Sync Time Selection
+            // Sync Time Selection
             Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              color: Theme.of(context).primaryColor,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -316,9 +328,12 @@ class _SetupScreenState extends State<SetupScreen> {
                   children: [
                     Text(
                       'Sync Settings',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     TimePickerWidget(
                       initialTime: syncTime,
                       onTimeChanged: (TimeOfDay newTime) {
@@ -328,10 +343,20 @@ class _SetupScreenState extends State<SetupScreen> {
                         _saveSettings();
                       },
                     ),
+                    const SizedBox(height: 16),
                     SwitchListTile(
-                      title: const Text('Auto-Connect'),
-                      subtitle:
-                          const Text('Automatically connect when on same WiFi'),
+                      activeColor: Theme.of(context).scaffoldBackgroundColor,
+                      // Highlight active state
+                      title: const Text(
+                        'Auto-Connect',
+                        style: TextStyle(
+                            color: Colors.white), // Ensure title is visible
+                      ),
+                      subtitle: const Text(
+                        'Automatically connect when on same WiFi',
+                        style: TextStyle(
+                            color: Colors.white70), // Subtle color for contrast
+                      ),
                       value: autoConnect,
                       onChanged: (value) {
                         setState(() {
@@ -344,10 +369,15 @@ class _SetupScreenState extends State<SetupScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 16),
 
-            // Pairing Section
             Card(
+              elevation: 4, // Adds depth to the card
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0), // Rounded corners
+              ),
+              color: Theme.of(context).primaryColor, // Dark background for the card
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -355,30 +385,62 @@ class _SetupScreenState extends State<SetupScreen> {
                   children: [
                     Text(
                       'Device Pairing',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white, // Ensure title is visible
+                          ),
                     ),
-                    const SizedBox(height: 8),
-                    Text('Device Name: $deviceName'),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Device Name: $deviceName',
+                      style: TextStyle(
+                          color: Colors.white70), // Subtle color for contrast
+                    ),
+                    const SizedBox(height: 12),
                     if (isDeviceA) ...[
                       Row(
                         children: [
                           Expanded(
                             child: Text(
-                                'Pair Code: ${pairCode ?? 'Not generated'}'),
+                              'Pair Code: ${pairCode ?? 'Not generated'}',
+                              style: TextStyle(
+                                  color:
+                                      Colors.white), // Ensure code is visible
+                            ),
                           ),
+                          const SizedBox(width: 8),
+                          // Space between Text and Button
                           ElevatedButton(
                             onPressed: _generatePairCode,
-                            child: const Text('Generate Code'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context)
+                                  .scaffoldBackgroundColor, // Match primary color
+                            ),
+                            child: const Text('Generate Code',style: TextStyle(color: Colors.white),),
                           ),
                         ],
                       ),
                     ] else ...[
                       TextField(
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Enter Pair Code from Device A',
                           hintText: 'Enter 6-digit code',
+                          labelStyle: TextStyle(color: Colors.white70),
+                          // Subtle label color
+                          hintStyle: TextStyle(color: Colors.white38),
+                          // Lighter hint color
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.white70), // Border color
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Theme.of(context)
+                                    .primaryColor), // Focused border
+                          ),
                         ),
+                        style: TextStyle(color: Colors.white),
+                        // Text color
                         keyboardType: TextInputType.number,
                         maxLength: 6,
                         onChanged: (value) {
@@ -432,7 +494,8 @@ class _SetupScreenState extends State<SetupScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>  FileSyncScreen(isDeviceA: true,pairCode: pairCode),
+          builder: (context) =>
+              FileSyncScreen(isDeviceA: true, pairCode: pairCode),
         ),
       );
     } else {
@@ -440,7 +503,8 @@ class _SetupScreenState extends State<SetupScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>  FileSyncScreen(isDeviceA: false,pairCode: pairCode),
+          builder: (context) =>
+              FileSyncScreen(isDeviceA: false, pairCode: pairCode),
         ),
       );
     }
