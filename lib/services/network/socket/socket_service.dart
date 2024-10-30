@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:i_miss_pixel/core/random_name_gen.dart';
 import 'package:i_miss_pixel/data/models/client_connection.dart';
+import 'package:i_miss_pixel/data/models/server_connection.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:dio/dio.dart';
 
@@ -280,6 +282,15 @@ class WebSocketService {
       }
 
       final results = await Future.wait(futures);
+      final serverIps =
+          results.where((ip) => ip != null).cast<String>().toList();
+      print(serverIps);
+      final List<ServerConnection> allAvailableServers = serverIps
+          .map((e) => ServerConnection(ipAddress: e, port: PORT))
+          .toList();
+      if (serverIps != null) {
+        onEvent?.call('serversFound', allAvailableServers);
+      }
       final serverIp = results.firstWhere(
         (ip) => ip != null,
         orElse: () => null,

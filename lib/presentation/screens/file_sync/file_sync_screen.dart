@@ -1,12 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:i_miss_pixel/presentation/bloc/connection/connection_bloc.dart';
 import 'package:i_miss_pixel/presentation/bloc/connection/connection_state.dart'
     as connection_state;
 import 'package:i_miss_pixel/presentation/screens/file_sync/widgets/connected_clients.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:i_miss_pixel/presentation/screens/file_sync/widgets/servers_list.dart';
 
 import '../../../services/network/socket/socket_service.dart';
 import '../../bloc/connection/connection_event.dart';
@@ -288,6 +286,15 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
                   ),
                   const SizedBox(height: 8),
                   buildClientsList(state.connectedClients),
+                  const SizedBox(height: 16),
+                ],
+                if(!widget.isDeviceA) ...[
+                  Text(
+                    'Connected Clients',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  buildServerList(state.discoveredServers),
                   const SizedBox(height: 16),
                 ],
 

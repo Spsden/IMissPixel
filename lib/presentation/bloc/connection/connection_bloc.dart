@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
+import 'package:i_miss_pixel/data/models/server_connection.dart';
 import 'package:i_miss_pixel/services/network/socket/socket_service_repo.dart';
 
 import '../../../data/models/client_connection.dart';
@@ -21,6 +22,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
     on<ClientConnected>(_onClientConnected);
     on<ClientDisconnected>(_onClientDisconnected);
     on<TransferProgressUpdated>(_onTransferProgressUpdated);
+    on<ServerDiscovered>(_onServerDiscovered);
   }
 
   void handleWebSocketEvent(String event, dynamic data) {
@@ -31,11 +33,16 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
         }
         break;
       case 'clientDisconnected':
-        print(data.toString() + "lol from bloc");
         if (data is ClientConnection) {
           add(ClientDisconnected(data));
         }
         break;
+      case 'serversFound':
+        if(data is List<ServerConnection>){
+          add(ServerDiscovered(data));
+        }
+
+
       // Add more event handlers as needed
     }
   }
@@ -149,6 +156,16 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
     Emitter<WebSocketConnectionState> emit,
   ) {
     emit(state.copyWith(transfers: event.progress));
+  }
+
+  void _onServerDiscovered(
+      ServerDiscovered event,
+      Emitter<WebSocketConnectionState> emit,
+      ){
+    final updatedSeversList = List<ServerConnection>.from(state.discoveredServers)
+        ..addAll(event.servers);
+    emit(state.copyWith(discoveredServers: updatedSeversList));
+
   }
 
   @override

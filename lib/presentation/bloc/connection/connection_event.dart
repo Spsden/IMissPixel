@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:i_miss_pixel/data/models/server_connection.dart';
 
 import '../../../data/models/client_connection.dart';
 
@@ -49,6 +50,34 @@ class ClientConnected extends ConnectionEvent {
   List<Object?> get props => [client];
 }
 
+class ServerConnected extends ConnectionEvent {
+  final ServerConnection server;
+
+  ServerConnected(this.server);
+
+  @override
+  List<Object?> get props => [server];
+}
+
+class ServerDisconnected extends ConnectionEvent {
+  final ServerConnection server;
+
+  ServerDisconnected(this.server);
+
+  @override
+  List<Object?> get props => [server];
+}
+
+class ServerDiscovered extends ConnectionEvent {
+  final List<ServerConnection> servers;
+
+  ServerDiscovered(this.servers);
+
+  @override
+  List<Object?> get props => [servers];
+}
+
+
 class ClientDisconnected extends ConnectionEvent {
   final ClientConnection client;
 
@@ -66,4 +95,3 @@ class TransferProgressUpdated extends ConnectionEvent {
   @override
   List<Object?> get props => [progress];
 }
-

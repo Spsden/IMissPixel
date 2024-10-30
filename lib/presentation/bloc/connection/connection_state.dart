@@ -15,7 +15,7 @@ class WebSocketConnectionState extends Equatable {
   final Map<String, double> transfers;
   final String? lastMessage;
   final bool isLoading;
-  final List<ServerConnection>? discoveredServers;
+  final List<ServerConnection> discoveredServers;
 
   const WebSocketConnectionState({
     this.status = ConnectionStatus.disconnected,
