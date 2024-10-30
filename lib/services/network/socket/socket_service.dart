@@ -545,8 +545,10 @@ class WebSocketService {
           _sendMessage({'type': 'pong'});
           break;
         case 'pong':
-          // Handle pong if needed
+          _sendMessage({'type': 'ping'});
           break;
+        case 'suraj':
+          _sendMessage({'response' : 'Hello Lord Creator'});
         default:
           print('Unknown message type: ${data['type']}');
       }

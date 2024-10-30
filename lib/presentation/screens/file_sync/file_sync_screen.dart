@@ -2,7 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:i_miss_pixel/presentation/bloc/connection/connection_bloc.dart';
-import 'package:i_miss_pixel/presentation/bloc/connection/connection_state.dart' as connection_state;
+import 'package:i_miss_pixel/presentation/bloc/connection/connection_state.dart'
+    as connection_state;
 import 'package:i_miss_pixel/presentation/screens/file_sync/widgets/connected_clients.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -14,11 +15,9 @@ class FileSyncScreen extends StatefulWidget {
   final bool isDeviceA;
   final String? pairCode;
 
-  const FileSyncScreen({
-    Key? key,
-    required this.isDeviceA,
-    required this.pairCode
-  }) : super(key: key);
+  const FileSyncScreen(
+      {Key? key, required this.isDeviceA, required this.pairCode})
+      : super(key: key);
 
   @override
   State<FileSyncScreen> createState() => _FileSyncScreenState();
@@ -39,8 +38,9 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
 
   void _initializeConnection() {
     context.read<ConnectionBloc>().add(
-      InitializeConnection(isServer: widget.isDeviceA,pairCode: widget.pairCode.toString()),
-    );
+          InitializeConnection(
+              isServer: widget.isDeviceA, pairCode: widget.pairCode.toString()),
+        );
   }
 
   // void _initializePairCode() {
@@ -53,33 +53,33 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
   //   }
   // }
 
-  Future<void> _validateAndProceed() async {
-    // // Validation
-    // if (!widget.isDeviceA && selectedFolders.isEmpty) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(content: Text('Please select at least one folder to sync')),
-    //   );
-    //   return;
-    // }
-    //
-    // if (widget.pairCode == null || pairCode!.length != 6) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(content: Text('Please enter/generate a valid pair code')),
-    //   );
-    //   return;
-    // }
-
-    // // Request necessary permissions
-    // if (!await _requestPermissions()) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(content: Text('Storage permissions are required')),
-    //   );
-    //   return;
-    // }
-
-    // Initialize WebSocket service
-    await _initializeService();
-  }
+  // Future<void> _validateAndProceed() async {
+  //   // // Validation
+  //   // if (!widget.isDeviceA && selectedFolders.isEmpty) {
+  //   //   ScaffoldMessenger.of(context).showSnackBar(
+  //   //     const SnackBar(content: Text('Please select at least one folder to sync')),
+  //   //   );
+  //   //   return;
+  //   // }
+  //   //
+  //   // if (widget.pairCode == null || pairCode!.length != 6) {
+  //   //   ScaffoldMessenger.of(context).showSnackBar(
+  //   //     const SnackBar(content: Text('Please enter/generate a valid pair code')),
+  //   //   );
+  //   //   return;
+  //   // }
+  //
+  //   // // Request necessary permissions
+  //   // if (!await _requestPermissions()) {
+  //   //   ScaffoldMessenger.of(context).showSnackBar(
+  //   //     const SnackBar(content: Text('Storage permissions are required')),
+  //   //   );
+  //   //   return;
+  //   // }
+  //
+  //   // Initialize WebSocket service
+  //   await _initializeService();
+  // }
 
   Future<bool> _requestPermissions() async {
     final storage = await Permission.storage.request();
@@ -91,117 +91,117 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
     return storage.isGranted;
   }
 
-  Future<void> _initializeService() async {
-    try {
-      setState(() => _connectionStatus = ConnectionStatus.connecting);
+  // Future<void> _initializeService() async {
+  //   try {
+  //     setState(() => _connectionStatus = ConnectionStatus.connecting);
+  //
+  //     _service = WebSocketService(
+  //       pairCode: widget.pairCode!,
+  //       isDeviceA: widget.isDeviceA,
+  //       onError: _handleError,
+  //       onEvent: _handleEvent,
+  //     );
+  //
+  //     // Listen to status changes
+  //     _service!.statusStream.listen((status) {
+  //       setState(() => _connectionStatus = status);
+  //       _handleStatusChange(status);
+  //     });
+  //
+  //     // Listen to transfer progress
+  //     _service!.transferProgressStream.listen((progress) {
+  //       setState(() => _transferProgress = progress);
+  //     });
+  //
+  //     await _service!.initialize();
+  //
+  //     // If we're Device B, start syncing selected folders
+  //     if (!widget.isDeviceA &&
+  //         _connectionStatus == ConnectionStatus.connected) {
+  //       _startFolderSync();
+  //     }
+  //   } catch (e) {
+  //     _handleError('Failed to initialize service: $e');
+  //   }
+  // }
+  //
+  // void _handleStatusChange(ConnectionStatus status) {
+  //   String message;
+  //   switch (status) {
+  //     case ConnectionStatus.connected:
+  //       message = 'Connected successfully!';
+  //       if (!widget.isDeviceA) {
+  //         _startFolderSync();
+  //       }
+  //       break;
+  //     case ConnectionStatus.disconnected:
+  //       message = 'Disconnected from peer';
+  //       break;
+  //     case ConnectionStatus.error:
+  //       message = 'Connection error occurred';
+  //       break;
+  //     default:
+  //       return;
+  //   }
+  //
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text(message)),
+  //   );
+  // }
+  //
+  // void _handleError(String error) {
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text('Error: $error')),
+  //   );
+  // }
 
-      _service = WebSocketService(
-        pairCode: widget.pairCode!,
-        isDeviceA: widget.isDeviceA,
-        onError: _handleError,
-        onEvent: _handleEvent,
-      );
+  // void _handleEvent(String event, dynamic data) {
+  //   switch (event) {
+  //     case 'transferComplete':
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('File sync completed: ${data['fileName']}')),
+  //       );
+  //       break;
+  //     case 'incomingTransfer':
+  //       // Could show a notification or progress indicator
+  //       break;
+  //   }
+  // }
+  //
+  // Future<void> _startFolderSync() async {
+  //   for (final folderPath in selectedFolders) {
+  //     await _syncFolder(folderPath);
+  //   }
+  // }
+  //
+  // Future<void> _syncFolder(String folderPath) async {
+  //   try {
+  //     final dir = Directory(folderPath);
+  //     await for (final entity in dir.list(recursive: true)) {
+  //       if (entity is File) {
+  //         await _syncFile(entity);
+  //       }
+  //     }
+  //   } catch (e) {
+  //     _handleError('Error syncing folder $folderPath: $e');
+  //   }
+  // }
 
-      // Listen to status changes
-      _service!.statusStream.listen((status) {
-        setState(() => _connectionStatus = status);
-        _handleStatusChange(status);
-      });
-
-      // Listen to transfer progress
-      _service!.transferProgressStream.listen((progress) {
-        setState(() => _transferProgress = progress);
-      });
-
-      await _service!.initialize();
-
-      // If we're Device B, start syncing selected folders
-      if (!widget.isDeviceA && _connectionStatus == ConnectionStatus.connected) {
-        _startFolderSync();
-      }
-
-    } catch (e) {
-      _handleError('Failed to initialize service: $e');
-    }
-  }
-
-  void _handleStatusChange(ConnectionStatus status) {
-    String message;
-    switch (status) {
-      case ConnectionStatus.connected:
-        message = 'Connected successfully!';
-        if (!widget.isDeviceA) {
-          _startFolderSync();
-        }
-        break;
-      case ConnectionStatus.disconnected:
-        message = 'Disconnected from peer';
-        break;
-      case ConnectionStatus.error:
-        message = 'Connection error occurred';
-        break;
-      default:
-        return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  void _handleError(String error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: $error')),
-    );
-  }
-
-  void _handleEvent(String event, dynamic data) {
-    switch (event) {
-      case 'transferComplete':
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('File sync completed: ${data['fileName']}')),
-        );
-        break;
-      case 'incomingTransfer':
-      // Could show a notification or progress indicator
-        break;
-    }
-  }
-
-  Future<void> _startFolderSync() async {
-    for (final folderPath in selectedFolders) {
-      await _syncFolder(folderPath);
-    }
-  }
-
-  Future<void> _syncFolder(String folderPath) async {
-    try {
-      final dir = Directory(folderPath);
-      await for (final entity in dir.list(recursive: true)) {
-        if (entity is File) {
-          await _syncFile(entity);
-        }
-      }
-    } catch (e) {
-      _handleError('Error syncing folder $folderPath: $e');
-    }
-  }
-
-  Future<void> _syncFile(File file) async {
-    try {
-      final bytes = await file.readAsBytes();
-      final fileName = file.path.split('/').last;
-
-      await _service?.sendFile(
-        fileName: fileName,
-        fileBytes: bytes,
-        mimeType: _getMimeType(fileName),
-        destinationPath: file.path,
-      );
-    } catch (e) {
-      _handleError('Error syncing file ${file.path}: $e');
-    }
-  }
+  // Future<void> _syncFile(File file) async {
+  //   try {
+  //     final bytes = await file.readAsBytes();
+  //     final fileName = file.path.split('/').last;
+  //
+  //     await _service?.sendFile(
+  //       fileName: fileName,
+  //       fileBytes: bytes,
+  //       mimeType: _getMimeType(fileName),
+  //       destinationPath: file.path,
+  //     );
+  //   } catch (e) {
+  //     _handleError('Error syncing file ${file.path}: $e');
+  //   }
+  // }
 
   String _getMimeType(String fileName) {
     // Simple MIME type detection based on extension
@@ -219,19 +219,20 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
     }
   }
 
-  Future<void> _selectFolder() async {
-    try {
-      // This is a simplified example - you'd want to use a proper folder picker
-      final directory = await getExternalStorageDirectory();
-      if (directory != null) {
-        setState(() {
-          selectedFolders.add(directory.path);
-        });
-      }
-    } catch (e) {
-      _handleError('Error selecting folder: $e');
-    }
-  }
+  // Future<void> _selectFolder() async {
+  //   try {
+  //     // This is a simplified example - you'd want to use a proper folder picker
+  //     final directory = await getExternalStorageDirectory();
+  //     if (directory != null) {
+  //       setState(() {
+  //         selectedFolders.add(directory.path);
+  //       });
+  //     }
+  //   } catch (e) {
+  //     _handleError('Error selecting folder: $e');
+  //   }
+  // }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -242,16 +243,19 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isDeviceA ? 'Device A (Server)' : 'Device B (Client)'),
+        title:
+            Text(widget.isDeviceA ? 'Device A (Server)' : 'Device B (Client)'),
       ),
-      body: BlocConsumer<ConnectionBloc,connection_state.WebSocketConnectionState>(
-        listener: (context,state) {
-          if (state.error?.isNotEmpty ?? false){
+      body: BlocConsumer<ConnectionBloc,
+          connection_state.WebSocketConnectionState>(
+        // bloc: Conne,
+        listener: (context, state) {
+          if (state.error?.isNotEmpty ?? false) {
             _showError(state.error!);
           }
         },
-        builder: (context,state) {
-          return  Padding(
+        builder: (context, state) {
+          return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -287,7 +291,7 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
                 ),
 
                 const SizedBox(height: 16),
-                if(widget.isDeviceA) ...[
+                if (widget.isDeviceA) ...[
                   Text(
                     'Connected Clients',
                     style: Theme.of(context).textTheme.titleLarge,
@@ -323,7 +327,7 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
                     ),
                   ),
                   ElevatedButton.icon(
-                    onPressed: _selectFolder,
+                    onPressed: ()=>{},
                     icon: const Icon(Icons.create_new_folder),
                     label: const Text('Add Folder'),
                   ),
@@ -335,12 +339,12 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
                   const Text('Transfer Progress:'),
                   const SizedBox(height: 8),
                   ...(_transferProgress.entries.map((entry) => Column(
-                    children: [
-                      Text(entry.key),
-                      LinearProgressIndicator(value: entry.value),
-                      const SizedBox(height: 8),
-                    ],
-                  ))),
+                        children: [
+                          Text(entry.key),
+                          LinearProgressIndicator(value: entry.value),
+                          const SizedBox(height: 8),
+                        ],
+                      ))),
                 ],
 
                 // Connection Status
@@ -351,25 +355,24 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
                 ElevatedButton(
                   onPressed: _connectionStatus == ConnectionStatus.disconnected
                       ? () {
-                    // Get the repository from bloc
-                    final bloc = context.read<ConnectionBloc>();
-                    final repository = bloc.repository;  // You'll need to expose repository in your bloc
+                          final bloc = context.read<ConnectionBloc>();
+                          // final repository = bloc
+                          //     .repository; // You'll need to expose repository in your bloc
+                          //
+                          // // Initialize the repository with required parameters
+                          // repository.initialize(
+                          //   pairCode: widget.pairCode.toString(),
+                          //   isDeviceA: widget.isDeviceA,
+                          //   onEvent: bloc
+                          //       .handleWebSocketEvent, // Pass the existing event handler from your bloc
+                          // );
 
-                    // Initialize the repository with required parameters
-                    repository.initialize(
-                      pairCode: widget.pairCode.toString(),
-                      isDeviceA: widget.isDeviceA,
-                      onEvent: bloc.handleWebSocketEvent,  // Pass the existing event handler from your bloc
-                    );
-
-                    // Now add the initialize event
-                    bloc.add(
-                      InitializeConnection(
-                          isServer: widget.isDeviceA,
-                          pairCode: widget.pairCode.toString()
-                      ),
-                    );
-                  }
+                          bloc.add(
+                            InitializeConnection(
+                                isServer: widget.isDeviceA,
+                                pairCode: widget.pairCode.toString()),
+                          );
+                        }
                       : null,
                   child: Text(_connectionStatus == ConnectionStatus.disconnected
                       ? 'Start Sync'
@@ -379,7 +382,6 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
             ),
           );
         },
-
       ),
     );
   }
