@@ -1,9 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:i_miss_pixel/presentation/bloc/connection/connection_bloc.dart';
+import 'package:i_miss_pixel/presentation/bloc/connection/connection_state.dart' as connection_state;
+import 'package:i_miss_pixel/presentation/screens/file_sync/widgets/connected_clients.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../services/network/socket/socket_service.dart';
+import '../../bloc/connection/connection_event.dart';
 
 class FileSyncScreen extends StatefulWidget {
   final bool isDeviceA;
@@ -29,6 +34,13 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
   void initState() {
     super.initState();
     // _initializePairCode();
+    _initializeConnection();
+  }
+
+  void _initializeConnection() {
+    context.read<ConnectionBloc>().add(
+      InitializeConnection(isServer: widget.isDeviceA,pairCode: widget.pairCode.toString()),
+    );
   }
 
   // void _initializePairCode() {
@@ -220,6 +232,11 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
       _handleError('Error selecting folder: $e');
     }
   }
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -227,104 +244,127 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
       appBar: AppBar(
         title: Text(widget.isDeviceA ? 'Device A (Server)' : 'Device B (Client)'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Pair Code Section
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Text(
-                      'Pair Code',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    if (widget.isDeviceA)
-                      Text(
-                        widget.pairCode ?? 'Generating...',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      )
-                    else
-                      TextField(
-                        decoration: const InputDecoration(
-                          hintText: 'Enter pair code',
+      body: BlocConsumer<ConnectionBloc,connection_state.ConnectionState>(
+        listener: (context,state) {
+          if (state.error?.isNotEmpty ?? false){
+            _showError(state.error!);
+          }
+        },
+        builder: (context,state) {
+          return  Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Pair Code Section
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Pair Code',
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
-                        // onChanged: (value) => setState(() => widget.pairCode = value),
-                        keyboardType: TextInputType.number,
-                        maxLength: 6,
-                      ),
-                  ],
+                        const SizedBox(height: 8),
+                        if (widget.isDeviceA)
+                          Text(
+                            widget.pairCode ?? 'Generating...',
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          )
+                        else
+                          TextField(
+                            decoration: const InputDecoration(
+                              hintText: 'Enter pair code',
+                            ),
+                            // onChanged: (value) => setState(() => widget.pairCode = value),
+                            keyboardType: TextInputType.number,
+                            maxLength: 6,
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 16),
-
-            // Folder Selection (Device B only)
-            if (!widget.isDeviceA) ...[
-              Text(
-                'Selected Folders',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: selectedFolders.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(selectedFolders[index]),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          setState(() {
-                            selectedFolders.removeAt(index);
-                          });
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: _selectFolder,
-                icon: const Icon(Icons.create_new_folder),
-                label: const Text('Add Folder'),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            // Progress Section
-            if (_transferProgress.isNotEmpty) ...[
-              const Text('Transfer Progress:'),
-              const SizedBox(height: 8),
-              ...(_transferProgress.entries.map((entry) => Column(
-                children: [
-                  Text(entry.key),
-                  LinearProgressIndicator(value: entry.value),
+                const SizedBox(height: 16),
+                if(widget.isDeviceA) ...[
+                  Text(
+                    'Connected Clients',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 8),
+                  buildClientsList(state.connectedClients),
+                  const SizedBox(height: 16),
                 ],
-              ))),
-            ],
 
-            // Connection Status
-            Text('Status: $_connectionStatus'),
-            const SizedBox(height: 16),
+                // Folder Selection (Device B only)
+                if (!widget.isDeviceA) ...[
+                  Text(
+                    'Selected Folders',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: selectedFolders.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(selectedFolders[index]),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              setState(() {
+                                selectedFolders.removeAt(index);
+                              });
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _selectFolder,
+                    icon: const Icon(Icons.create_new_folder),
+                    label: const Text('Add Folder'),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
-            // Start Button
-            ElevatedButton(
-              onPressed: _connectionStatus == ConnectionStatus.disconnected
-                  ? _validateAndProceed
-                  : null,
-              child: Text(_connectionStatus == ConnectionStatus.disconnected
-                  ? 'Start Sync'
-                  : 'Connected'),
+                // Progress Section
+                if (_transferProgress.isNotEmpty) ...[
+                  const Text('Transfer Progress:'),
+                  const SizedBox(height: 8),
+                  ...(_transferProgress.entries.map((entry) => Column(
+                    children: [
+                      Text(entry.key),
+                      LinearProgressIndicator(value: entry.value),
+                      const SizedBox(height: 8),
+                    ],
+                  ))),
+                ],
+
+                // Connection Status
+                Text('Status: $_connectionStatus'),
+                const SizedBox(height: 16),
+
+                // Start Button
+                ElevatedButton(
+                  onPressed: _connectionStatus == ConnectionStatus.disconnected
+                      ? () {
+                    context.read<ConnectionBloc>().add(
+                      InitializeConnection(isServer: widget.isDeviceA, pairCode: widget.pairCode.toString()),
+                    );
+                  }
+                      : null,
+                  child: Text(_connectionStatus == ConnectionStatus.disconnected
+                      ? 'Start Sync'
+                      : 'Connected'),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
+
       ),
     );
   }

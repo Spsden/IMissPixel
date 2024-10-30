@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:i_miss_pixel/data/models/client_connection.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:dio/dio.dart';
 
@@ -128,8 +129,8 @@ class WebSocketService {
           }
 
           try {
-            final socket = await WebSocketTransformer.upgrade(request);
-            _handleServerConnection(socket);
+           // final socket = await WebSocketTransformer.upgrade(request);
+            _handleServerConnection(request);
           } catch (e) {
             print('Error upgrading to WebSocket: $e');
             request.response.statusCode = HttpStatus.internalServerError;
@@ -153,8 +154,19 @@ class WebSocketService {
     }
   }
 
-  void _handleServerConnection(WebSocket socket) {
-    _connectedClients[socket] = DateTime.now().toString();
+  void _handleServerConnection(HttpRequest request) async{
+    final socket = await WebSocketTransformer.upgrade(request);
+    final clientId = DateTime.now().toString();
+    final ipAddress = request.connectionInfo?.remoteAddress.address ??'unknown';
+
+    final client = ClientConnection(
+      id: clientId,
+      ipAddress: ipAddress,
+      connectedAt: DateTime.now()
+    );
+
+    _connectedClients[socket] = clientId;
+    onEvent?.call('clientConnected', client);
 
     socket.listen(
       (dynamic message) {
@@ -562,4 +574,18 @@ class WebSocketService {
     _connectedClients.clear();
     _activeTransfers.clear();
   }
+  // WebSocketService copyWith({
+  //   String? pairCode,
+  //   bool? isDeviceA,
+  //   void Function(String message)? onError,
+  //   void Function(String event, dynamic data)? onEvent,
+  // }) {
+  //   return WebSocketService(
+  //     pairCode: pairCode ?? this.pairCode,
+  //     isDeviceA: isDeviceA ?? this.isDeviceA,
+  //     onError: onError ?? this.onError,
+  //     onEvent: onEvent ?? this.onEvent,
+  //   );
+  // }
+
 }

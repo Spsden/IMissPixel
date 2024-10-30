@@ -9,11 +9,28 @@ import 'connection_event.dart';
 import 'connection_state.dart';
 
 class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
-  final WebSocketService _socketService;
+    WebSocketService _socketService;
   StreamSubscription? _statusSubscription;
   StreamSubscription? _transferProgressSubscription;
 
   ConnectionBloc(this._socketService) : super(const ConnectionState()) {
+    // _socketService = socketService.copyWith(
+    //   onEvent: (String event, dynamic data) {
+    //     switch (event) {
+    //       case 'clientConnected':
+    //         if (data is ClientConnection) {
+    //           add(ClientConnected(data));
+    //         }
+    //         break;
+    //       case 'clientDisconnected':
+    //         if (data is String) {
+    //           add(ClientDisconnected(data));
+    //         }
+    //         break;
+    //     }
+    //   },
+    // );
+
     on<InitializeConnection>(_onInitializeConnection);
     on<SendFile>(_onSendFile);
     on<DisconnectRequested>(_onDisconnectRequested);
@@ -24,6 +41,22 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     _setupSubscriptions();
   }
 
+  void _handleWebSocketEvent(String event, dynamic data) {
+    switch (event) {
+      case 'clientConnected':
+        if (data is ClientConnection) {
+          add(ClientConnected(data));
+        }
+        break;
+      case 'clientDisconnected':
+        if (data is String) {
+          add(ClientDisconnected(data));
+        }
+        break;
+      // Add more event handlers as needed
+    }
+  }
+
   void _setupSubscriptions() {
     _statusSubscription = _socketService.statusStream.listen((status) {
       emit(state.copyWith(status: status));
@@ -31,14 +64,14 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
 
     _transferProgressSubscription =
         _socketService.transferProgressStream.listen((progress) {
-          add(TransferProgressUpdated(progress));
-        });
+      add(TransferProgressUpdated(progress));
+    });
   }
 
   Future<void> _onInitializeConnection(
-      InitializeConnection event,
-      Emitter<ConnectionState> emit,
-      ) async {
+    InitializeConnection event,
+    Emitter<ConnectionState> emit,
+  ) async {
     try {
       emit(state.copyWith(
         type: event.isServer ? ConnectionType.server : ConnectionType.client,
@@ -55,9 +88,9 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
   }
 
   Future<void> _onSendFile(
-      SendFile event,
-      Emitter<ConnectionState> emit,
-      ) async {
+    SendFile event,
+    Emitter<ConnectionState> emit,
+  ) async {
     try {
       final file = File(event.filePath);
       final bytes = await file.readAsBytes();
@@ -74,9 +107,9 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
   }
 
   void _onDisconnectRequested(
-      DisconnectRequested event,
-      Emitter<ConnectionState> emit,
-      ) {
+    DisconnectRequested event,
+    Emitter<ConnectionState> emit,
+  ) {
     _socketService.dispose();
     emit(state.copyWith(
       status: ConnectionStatus.disconnected,
@@ -86,18 +119,18 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
   }
 
   void _onClientConnected(
-      ClientConnected event,
-      Emitter<ConnectionState> emit,
-      ) {
+    ClientConnected event,
+    Emitter<ConnectionState> emit,
+  ) {
     final updatedClients = List<ClientConnection>.from(state.connectedClients)
       ..add(event.client);
     emit(state.copyWith(connectedClients: updatedClients));
   }
 
   void _onClientDisconnected(
-      ClientDisconnected event,
-      Emitter<ConnectionState> emit,
-      ) {
+    ClientDisconnected event,
+    Emitter<ConnectionState> emit,
+  ) {
     final updatedClients = state.connectedClients.map((client) {
       if (client.id == event.clientId) {
         return ClientConnection(
@@ -114,9 +147,9 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
   }
 
   void _onTransferProgressUpdated(
-      TransferProgressUpdated event,
-      Emitter<ConnectionState> emit,
-      ) {
+    TransferProgressUpdated event,
+    Emitter<ConnectionState> emit,
+  ) {
     emit(state.copyWith(transfers: event.progress));
   }
 
@@ -128,4 +161,3 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     return super.close();
   }
 }
-
