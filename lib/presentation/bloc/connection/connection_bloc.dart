@@ -14,6 +14,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
   WebSocketRepository repository;
   StreamSubscription? _statusSubscription;
   StreamSubscription? _transferProgressSubscription;
+  StreamSubscription? _serversListSubscription;
 
   ConnectionBloc(this.repository) : super(const WebSocketConnectionState()) {
     on<InitializeConnection>(_onInitializeConnection);
@@ -37,19 +38,18 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
           add(ClientDisconnected(data));
         }
         break;
-      case 'serversFound':
-        if(data is List<ServerConnection>){
-          add(ServerDiscovered(data));
-        }
+      // case 'serversFound':
+      //   if(data is List<ServerConnection>){
+      //     add(ServerDiscovered(data));
+      //   }
 
-
-      // Add more event handlers as needed
     }
   }
 
   void _setupSubscriptions() {
-    _statusSubscription?.cancel();  // Cancel any existing subscriptions
+    _statusSubscription?.cancel(); // Cancel any existing subscriptions
     _transferProgressSubscription?.cancel();
+    _serversListSubscription?.cancel();
 
     _statusSubscription = repository.service.statusStream.listen((status) {
       emit(state.copyWith(status: status));
@@ -57,8 +57,12 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
 
     _transferProgressSubscription =
         repository.service.transferProgressStream.listen((progress) {
-          add(TransferProgressUpdated(progress));
-        });
+      add(TransferProgressUpdated(progress));
+    });
+    _serversListSubscription =
+        repository.service.serverScanStream.listen((servers) {
+      emit(state.copyWith(discoveredServers: servers));
+    });
   }
 
   Future<void> _onInitializeConnection(

@@ -241,8 +241,28 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(widget.isDeviceA ? 'Device A (Server)' : 'Device B (Client)'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              widget.isDeviceA ? 'Receiver' : 'Sender',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            Text(
+              widget.pairCode ?? 'Generating...',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w300,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+        elevation: 4,
+        backgroundColor: Theme.of(context).primaryColor,
       ),
       body: BlocConsumer<ConnectionBloc,
           connection_state.WebSocketConnectionState>(
@@ -294,7 +314,7 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
-                  buildServerList(state.discoveredServers),
+                  ServerListWidget(),
                   const SizedBox(height: 16),
                 ],
 

@@ -198,14 +198,23 @@ class _SetupScreenState extends State<SetupScreen> {
     }
 
     return Scaffold(
+      backgroundColor:Color(0xFF121212),
       appBar: AppBar(
-        title: const Text('Photo Sync Setup'),
+        title:  Text("Let's setup your app",
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
             onPressed: () => _showHelp(context),
           ),
         ],
+        centerTitle: true,
+        elevation: 4,
+        backgroundColor: Theme.of(context).primaryColor,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -214,6 +223,12 @@ class _SetupScreenState extends State<SetupScreen> {
           children: [
             // Device Role Selection
             Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12), // Rounded corners
+              ),
+              color: Theme.of(context).primaryColor,
+              elevation: 4, // Subtle shadow for depth
+              margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 8), // Margin for spacing
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -221,16 +236,28 @@ class _SetupScreenState extends State<SetupScreen> {
                   children: [
                     Text(
                       'Device Role',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold, // Bold for emphasis
+                        color: Colors.white, // Use a color that matches the theme
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12), // Increased spacing for a modern look
                     SwitchListTile(
-                      title: Text(isDeviceA
-                          ? 'Receiver (Phone A)'
-                          : 'Sender (Phone B)'),
-                      subtitle: Text(isDeviceA
-                          ? 'This device will receive and store photos'
-                          : 'This device will send photos to Phone A'),
+                      title: Text(
+                        isDeviceA ? 'Receiver (Phone A)' : 'Sender (Phone B)',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.white, // Match text color to theme
+                        ),
+                      ),
+                      subtitle: Text(
+                        isDeviceA
+                            ? 'This device will receive and store photos'
+                            : 'This device will send photos to Phone A',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.white70, // Subtle color for subtitle
+                        ),
+                      ),
+                      activeColor: Theme.of(context).colorScheme.inversePrimary, // Use secondary color for the switch
                       value: isDeviceA,
                       onChanged: (value) {
                         setState(() {

@@ -37,6 +37,7 @@ class WebSocketService {
   static const int CHUNK_SIZE = 32 * 1024; // 32KB chunks
   static const Duration TIMEOUT = Duration(seconds: 30);
   static const Duration PING_INTERVAL = Duration(seconds: 30);
+  static const Duration SERVER_SCAN_INTERVAL = Duration(seconds: 5);
 
   final dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 5),
@@ -62,8 +63,10 @@ class WebSocketService {
   final _statusController = StreamController<ConnectionStatus>.broadcast();
   final _transferProgressController =
       StreamController<Map<String, double>>.broadcast();
+  final _serverScanStreamController = StreamController<List<ServerConnection>>.broadcast();
 
   ConnectionStatus _status = ConnectionStatus.disconnected;
+  List<ServerConnection> _servers = [];
 
   WebSocketService({
     required this.pairCode,
@@ -76,6 +79,9 @@ class WebSocketService {
 
   Stream<Map<String, double>> get transferProgressStream =>
       _transferProgressController.stream;
+
+  Stream<List<ServerConnection>> get serverScanStream =>
+      _serverScanStreamController.stream;
 
   Future<String?> getLocalIpAddress() async {
     try {
@@ -216,12 +222,15 @@ class WebSocketService {
       _updateStatus(ConnectionStatus.connecting);
 
       // Try to discover server
-      final serverIp = await _discoverServer();
-      if (serverIp == null) {
-        throw Exception('No server found on the network');
-      }
+      Timer.periodic(SERVER_SCAN_INTERVAL, (timer) async {
+        final serverIp = await _discoverServer();
+      });
 
-      await _connectToServer(serverIp);
+      // if (serverIp == null) {
+      //   throw Exception('No server found on the network');
+      // }
+
+      //await _connectToServer(serverIp);
       _startKeepAlive();
     } catch (e) {
       _updateStatus(ConnectionStatus.error);
@@ -288,7 +297,10 @@ class WebSocketService {
       final List<ServerConnection> allAvailableServers = serverIps
           .map((e) => ServerConnection(ipAddress: e, port: PORT))
           .toList();
+      _servers = allAvailableServers;
+      _serverScanStreamController.add(_servers);
       if (serverIps != null) {
+
         onEvent?.call('serversFound', allAvailableServers);
       }
       final serverIp = results.firstWhere(
