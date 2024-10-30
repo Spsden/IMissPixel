@@ -260,7 +260,6 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Pair Code Section
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),

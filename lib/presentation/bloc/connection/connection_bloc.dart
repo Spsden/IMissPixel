@@ -31,7 +31,8 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
         }
         break;
       case 'clientDisconnected':
-        if (data is String) {
+        print(data.toString() + "lol from bloc");
+        if (data is ClientConnection) {
           add(ClientDisconnected(data));
         }
         break;
@@ -127,7 +128,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
     Emitter<WebSocketConnectionState> emit,
   ) {
     final updatedClients = state.connectedClients.map((client) {
-      if (client.id == event.clientId) {
+      if (client == event.client) {
         return ClientConnection(
           id: client.id,
           ipAddress: client.ipAddress,
@@ -137,6 +138,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
       }
       return client;
     }).toList();
+    print(updatedClients);
 
     emit(state.copyWith(connectedClients: updatedClients));
   }

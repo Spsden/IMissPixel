@@ -43,7 +43,7 @@ class WebSocketService {
 
   // Server-side properties
   HttpServer? _httpServer;
-  final Map<WebSocket, String> _connectedClients = {};
+  final Map<WebSocket, ClientConnection> _connectedClients = {};
   final Map<String, FileTransfer> _activeTransfers = {};
 
   // Client-side properties
@@ -165,7 +165,7 @@ class WebSocketService {
       connectedAt: DateTime.now()
     );
 
-    _connectedClients[socket] = clientId;
+    _connectedClients[socket] = client;
     onEvent?.call('clientConnected', client);
 
     socket.listen(
@@ -175,8 +175,10 @@ class WebSocketService {
         }
       },
       onDone: () {
+        print('client disconnected ${_connectedClients[socket]}');
+        final client = _connectedClients[socket];
+        onEvent?.call('clientDisconnected', client);
         _connectedClients.remove(socket);
-        onEvent?.call('clientDisconnected', {'id': _connectedClients[socket]});
       },
       onError: (error) {
         print('Socket error: $error');

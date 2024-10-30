@@ -50,12 +50,12 @@ class ClientConnected extends ConnectionEvent {
 }
 
 class ClientDisconnected extends ConnectionEvent {
-  final String clientId;
+  final ClientConnection client;
 
-  ClientDisconnected(this.clientId);
+  ClientDisconnected(this.client);
 
   @override
-  List<Object?> get props => [clientId];
+  List<Object?> get props => [client];
 }
 
 class TransferProgressUpdated extends ConnectionEvent {
