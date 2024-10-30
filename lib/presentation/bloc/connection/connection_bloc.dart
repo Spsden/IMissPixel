@@ -15,6 +15,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
   StreamSubscription? _statusSubscription;
   StreamSubscription? _transferProgressSubscription;
   StreamSubscription? _serversListSubscription;
+  StreamSubscription? _serverStatusSubscription;
 
   ConnectionBloc(this.repository) : super(const WebSocketConnectionState()) {
     on<InitializeConnection>(_onInitializeConnection);
@@ -24,6 +25,9 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
     on<ClientDisconnected>(_onClientDisconnected);
     on<TransferProgressUpdated>(_onTransferProgressUpdated);
     on<ServerDiscovered>(_onServerDiscovered);
+    on<ServerStarted>(_onStartServer);
+    on<ServerStopped>(_onStopServer);
+
   }
 
   void handleWebSocketEvent(String event, dynamic data) {
@@ -63,6 +67,9 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
         repository.service.serverScanStream.listen((servers) {
       emit(state.copyWith(discoveredServers: servers));
     });
+    _serverStatusSubscription = repository.service.serverStatusStream.listen((serverStatus) {
+      emit(state.copyWith(serverStatus: serverStatus));
+    });
   }
 
   Future<void> _onInitializeConnection(
@@ -89,6 +96,39 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
     } catch (e) {
       emit(state.copyWith(
         status: ConnectionStatus.error,
+        error: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onStartServer(
+      ServerStarted event,
+      Emitter<WebSocketConnectionState> emit,
+      ) async {
+    try {
+      emit(state.copyWith(serverStatus: ServerStatus.starting));
+
+      await repository.service.startServer();
+      emit(state.copyWith(serverStatus: ServerStatus.started));
+    } catch (e) {
+      emit(state.copyWith(
+        serverStatus : ServerStatus.error,
+        error: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onStopServer(
+      ServerStopped event,
+      Emitter<WebSocketConnectionState> emit,
+      ) async {
+    try {
+
+      await repository.service.stopServer();
+      emit(state.copyWith(serverStatus: ServerStatus.stopped));
+    } catch (e) {
+      emit(state.copyWith(
+        serverStatus : ServerStatus.error,
         error: e.toString(),
       ));
     }

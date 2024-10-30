@@ -78,6 +78,8 @@ class ServerDiscovered extends ConnectionEvent {
 }
 
 
+
+
 class ClientDisconnected extends ConnectionEvent {
   final ClientConnection client;
 
@@ -95,3 +97,23 @@ class TransferProgressUpdated extends ConnectionEvent {
   @override
   List<Object?> get props => [progress];
 }
+
+class ServerStarting extends ConnectionEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+class ServerStarted extends ConnectionEvent {
+  final String address;
+
+  ServerStarted(this.address);
+
+  @override
+  List<Object?> get props => [address];
+}
+
+class ServerStopped extends ConnectionEvent {
+  @override
+  List<Object?> get props => [];
+}
+

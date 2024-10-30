@@ -10,6 +10,8 @@ import 'package:dio/dio.dart';
 
 enum ConnectionStatus { disconnected, connecting, connected, paired, error }
 
+enum ServerStatus { started, starting, stopped, error }
+
 enum TransferStatus { none, preparing, inProgress, completed, failed }
 
 class FileTransfer {
@@ -63,9 +65,13 @@ class WebSocketService {
   final _statusController = StreamController<ConnectionStatus>.broadcast();
   final _transferProgressController =
       StreamController<Map<String, double>>.broadcast();
-  final _serverScanStreamController = StreamController<List<ServerConnection>>.broadcast();
+  final _serverScanStreamController =
+      StreamController<List<ServerConnection>>.broadcast();
+  final _serverStatusStreamController =
+      StreamController<ServerStatus>.broadcast();
 
   ConnectionStatus _status = ConnectionStatus.disconnected;
+  ServerStatus _serverStatus = ServerStatus.stopped;
   List<ServerConnection> _servers = [];
 
   WebSocketService({
@@ -83,6 +89,9 @@ class WebSocketService {
   Stream<List<ServerConnection>> get serverScanStream =>
       _serverScanStreamController.stream;
 
+  Stream<ServerStatus> get serverStatusStream =>
+      _serverStatusStreamController.stream;
+
   Future<String?> getLocalIpAddress() async {
     try {
       final info = NetworkInfo();
@@ -98,7 +107,7 @@ class WebSocketService {
   Future<void> initialize() async {
     try {
       if (isDeviceA) {
-        await _startServer();
+        await startServer();
       } else {
         await _startClient();
       }
@@ -108,9 +117,10 @@ class WebSocketService {
     }
   }
 
-  Future<void> _startServer() async {
+  Future<void> startServer() async {
     try {
-      _updateStatus(ConnectionStatus.connecting);
+     // _updateStatus(ConnectionStatus.connecting);
+      _updateServerStatus(ServerStatus.starting);
 
       final ipAddress = await getLocalIpAddress();
       print(ipAddress);
@@ -138,7 +148,7 @@ class WebSocketService {
           }
 
           try {
-           // final socket = await WebSocketTransformer.upgrade(request);
+            // final socket = await WebSocketTransformer.upgrade(request);
             _handleServerConnection(request);
           } catch (e) {
             print('Error upgrading to WebSocket: $e');
@@ -148,25 +158,30 @@ class WebSocketService {
         },
         onError: (error) {
           print('Server error: $error');
-          _updateStatus(ConnectionStatus.error);
+       //   _updateStatus(ConnectionStatus.error);
+          _updateServerStatus(ServerStatus.error);
           onError?.call('Server error: $error');
         },
         cancelOnError: false,
       );
 
-      _updateStatus(ConnectionStatus.connected);
+     // _updateStatus(ConnectionStatus.connected);
+      _updateServerStatus(ServerStatus.started);
+
       onEvent?.call('serverStarted', {'address': 'ws://$ipAddress:$PORT'});
     } catch (e) {
-      _updateStatus(ConnectionStatus.error);
+      //   _updateStatus(ConnectionStatus.error);
+      _updateServerStatus(ServerStatus.error);
       onError?.call('Failed to start server: $e');
       rethrow;
     }
   }
 
-  void _handleServerConnection(HttpRequest request) async{
+  void _handleServerConnection(HttpRequest request) async {
     final socket = await WebSocketTransformer.upgrade(request);
     final clientId = DateTime.now().toString();
-    final ipAddress = request.connectionInfo?.remoteAddress.address ??'unknown';
+    final ipAddress =
+        request.connectionInfo?.remoteAddress.address ?? 'unknown';
     final String clientName = RandomNameGenerator.generateRandomName();
 
     final client = ClientConnection(
@@ -300,7 +315,6 @@ class WebSocketService {
       _servers = allAvailableServers;
       _serverScanStreamController.add(_servers);
       if (serverIps != null) {
-
         onEvent?.call('serversFound', allAvailableServers);
       }
       final serverIp = results.firstWhere(
@@ -576,7 +590,7 @@ class WebSocketService {
           _sendMessage({'type': 'ping'});
           break;
         case 'suraj':
-          _sendMessage({'response' : 'Hello Lord Creator'});
+          _sendMessage({'response': 'Hello Lord Creator'});
         default:
           print('Unknown message type: ${data['type']}');
       }
@@ -588,6 +602,26 @@ class WebSocketService {
   void _updateStatus(ConnectionStatus status) {
     _status = status;
     _statusController.add(status);
+  }
+  void _updateServerStatus(ServerStatus status){
+    _serverStatus = status;
+    _serverStatusStreamController.add(status);
+  }
+
+  Future<void> stopServer() async {
+
+    for (final client in _connectedClients.keys) {
+      onEvent?.call('clientDisconnected',client);
+      client.close();
+    }
+    _connectedClients.clear();
+
+    await _httpServer?.close();
+    _httpServer = null;
+
+    _updateStatus(ConnectionStatus.disconnected);
+    onEvent?.call('serverStopped', null);
+
   }
 
   void dispose() {
@@ -604,18 +638,17 @@ class WebSocketService {
     _connectedClients.clear();
     _activeTransfers.clear();
   }
-  // WebSocketService copyWith({
-  //   String? pairCode,
-  //   bool? isDeviceA,
-  //   void Function(String message)? onError,
-  //   void Function(String event, dynamic data)? onEvent,
-  // }) {
-  //   return WebSocketService(
-  //     pairCode: pairCode ?? this.pairCode,
-  //     isDeviceA: isDeviceA ?? this.isDeviceA,
-  //     onError: onError ?? this.onError,
-  //     onEvent: onEvent ?? this.onEvent,
-  //   );
-  // }
-
+// WebSocketService copyWith({
+//   String? pairCode,
+//   bool? isDeviceA,
+//   void Function(String message)? onError,
+//   void Function(String event, dynamic data)? onEvent,
+// }) {
+//   return WebSocketService(
+//     pairCode: pairCode ?? this.pairCode,
+//     isDeviceA: isDeviceA ?? this.isDeviceA,
+//     onError: onError ?? this.onError,
+//     onEvent: onEvent ?? this.onEvent,
+//   );
+// }
 }

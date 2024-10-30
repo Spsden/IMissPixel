@@ -16,6 +16,7 @@ class WebSocketConnectionState extends Equatable {
   final String? lastMessage;
   final bool isLoading;
   final List<ServerConnection> discoveredServers;
+  final ServerStatus serverStatus;
 
   const WebSocketConnectionState({
     this.status = ConnectionStatus.disconnected,
@@ -27,6 +28,7 @@ class WebSocketConnectionState extends Equatable {
     this.lastMessage,
     this.isLoading = false,
     this.discoveredServers = const [],
+    this.serverStatus=ServerStatus.stopped
   });
 
   WebSocketConnectionState copyWith({
@@ -39,6 +41,7 @@ class WebSocketConnectionState extends Equatable {
     String? lastMessage,
     bool? isLoading,
     List<ServerConnection>? discoveredServers,
+    ServerStatus? serverStatus,
   }) {
     return WebSocketConnectionState(
       status: status ?? this.status,
@@ -50,6 +53,7 @@ class WebSocketConnectionState extends Equatable {
       lastMessage: lastMessage ?? this.lastMessage,
       isLoading: isLoading ?? this.isLoading,
       discoveredServers: discoveredServers ?? this.discoveredServers,
+      serverStatus: serverStatus ?? this.serverStatus,
     );
   }
 
@@ -64,5 +68,6 @@ class WebSocketConnectionState extends Equatable {
     lastMessage,
     isLoading,
     discoveredServers,
+    serverStatus
   ];
 }
