@@ -5,14 +5,14 @@ import '../../../services/network/socket/socket_service.dart';
 
 enum ConnectionType { server, client }
 
-class ConnectionState extends Equatable {
+class WebSocketConnectionState extends Equatable {
   final ConnectionStatus status;
   final ConnectionType type;
   final List<ClientConnection> connectedClients;
   final String? error;
   final Map<String, double> transfers;
 
-  const ConnectionState({
+  const WebSocketConnectionState({
     this.status = ConnectionStatus.disconnected,
     this.type = ConnectionType.client,
     this.connectedClients = const [],
@@ -20,14 +20,14 @@ class ConnectionState extends Equatable {
     this.transfers = const {},
   });
 
-  ConnectionState copyWith({
+  WebSocketConnectionState copyWith({
     ConnectionStatus? status,
     ConnectionType? type,
     List<ClientConnection>? connectedClients,
     String? error,
     Map<String, double>? transfers,
   }) {
-    return ConnectionState(
+    return WebSocketConnectionState(
       status: status ?? this.status,
       type: type ?? this.type,
       connectedClients: connectedClients ?? this.connectedClients,

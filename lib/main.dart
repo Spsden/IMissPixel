@@ -1,25 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:i_miss_pixel/presentation/bloc/connection/connection_bloc.dart';
 import 'package:i_miss_pixel/presentation/screens/home/home_screen.dart';
 import 'package:i_miss_pixel/presentation/screens/setup/setup_screen.dart';
-import 'package:i_miss_pixel/presentation/screens/spalsh_screen.dart';
+import 'package:i_miss_pixel/presentation/screens/splash_screen.dart';
+import 'package:i_miss_pixel/services/network/socket/socket_service_repo.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  runApp(const IMissPixel());
+  runApp( IMissPixel());
 }
 
 class IMissPixel extends StatelessWidget {
-  const IMissPixel({super.key});
+   IMissPixel({super.key});
+  final repository = WebSocketRepository();
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Photo Sync',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => ConnectionBloc(repository)),
+      ],
+      child: MaterialApp(
+        title: 'Photo Sync',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+        ),
+        home: const AppStarter(),
       ),
-      home: const AppStarter(),
     );
   }
 }

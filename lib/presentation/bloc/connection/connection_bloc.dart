@@ -2,46 +2,28 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
+import 'package:i_miss_pixel/services/network/socket/socket_service_repo.dart';
 
 import '../../../data/models/client_connection.dart';
 import '../../../services/network/socket/socket_service.dart';
 import 'connection_event.dart';
 import 'connection_state.dart';
 
-class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
-    WebSocketService _socketService;
+class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
+  WebSocketRepository repository;
   StreamSubscription? _statusSubscription;
   StreamSubscription? _transferProgressSubscription;
 
-  ConnectionBloc(this._socketService) : super(const ConnectionState()) {
-    // _socketService = socketService.copyWith(
-    //   onEvent: (String event, dynamic data) {
-    //     switch (event) {
-    //       case 'clientConnected':
-    //         if (data is ClientConnection) {
-    //           add(ClientConnected(data));
-    //         }
-    //         break;
-    //       case 'clientDisconnected':
-    //         if (data is String) {
-    //           add(ClientDisconnected(data));
-    //         }
-    //         break;
-    //     }
-    //   },
-    // );
-
+  ConnectionBloc(this.repository) : super(const WebSocketConnectionState()) {
     on<InitializeConnection>(_onInitializeConnection);
     on<SendFile>(_onSendFile);
     on<DisconnectRequested>(_onDisconnectRequested);
     on<ClientConnected>(_onClientConnected);
     on<ClientDisconnected>(_onClientDisconnected);
     on<TransferProgressUpdated>(_onTransferProgressUpdated);
-
-    _setupSubscriptions();
   }
 
-  void _handleWebSocketEvent(String event, dynamic data) {
+  void handleWebSocketEvent(String event, dynamic data) {
     switch (event) {
       case 'clientConnected':
         if (data is ClientConnection) {
@@ -58,27 +40,40 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
   }
 
   void _setupSubscriptions() {
-    _statusSubscription = _socketService.statusStream.listen((status) {
+    _statusSubscription?.cancel();  // Cancel any existing subscriptions
+    _transferProgressSubscription?.cancel();
+
+    _statusSubscription = repository.service.statusStream.listen((status) {
       emit(state.copyWith(status: status));
     });
 
     _transferProgressSubscription =
-        _socketService.transferProgressStream.listen((progress) {
-      add(TransferProgressUpdated(progress));
-    });
+        repository.service.transferProgressStream.listen((progress) {
+          add(TransferProgressUpdated(progress));
+        });
   }
 
   Future<void> _onInitializeConnection(
     InitializeConnection event,
-    Emitter<ConnectionState> emit,
+    Emitter<WebSocketConnectionState> emit,
   ) async {
     try {
+      // if(!repository.isInitialized){
+      //   throw StateError("Pixel::Service not initialized");
+      // }
       emit(state.copyWith(
         type: event.isServer ? ConnectionType.server : ConnectionType.client,
         status: ConnectionStatus.connecting,
       ));
-
-      await _socketService.initialize();
+      if (!repository.isInitialized) {
+        repository.initialize(
+          pairCode: event.pairCode,
+          isDeviceA: event.isServer,
+          onEvent: handleWebSocketEvent,
+        );
+      }
+       _setupSubscriptions();
+      await repository.service.initialize();
     } catch (e) {
       emit(state.copyWith(
         status: ConnectionStatus.error,
@@ -89,13 +84,13 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
 
   Future<void> _onSendFile(
     SendFile event,
-    Emitter<ConnectionState> emit,
+    Emitter<WebSocketConnectionState> emit,
   ) async {
     try {
       final file = File(event.filePath);
       final bytes = await file.readAsBytes();
 
-      await _socketService.sendFile(
+      await repository.service.sendFile(
         fileName: event.fileName,
         fileBytes: bytes,
         mimeType: event.mimeType,
@@ -108,9 +103,9 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
 
   void _onDisconnectRequested(
     DisconnectRequested event,
-    Emitter<ConnectionState> emit,
+    Emitter<WebSocketConnectionState> emit,
   ) {
-    _socketService.dispose();
+    repository.service.dispose();
     emit(state.copyWith(
       status: ConnectionStatus.disconnected,
       connectedClients: [],
@@ -120,7 +115,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
 
   void _onClientConnected(
     ClientConnected event,
-    Emitter<ConnectionState> emit,
+    Emitter<WebSocketConnectionState> emit,
   ) {
     final updatedClients = List<ClientConnection>.from(state.connectedClients)
       ..add(event.client);
@@ -129,7 +124,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
 
   void _onClientDisconnected(
     ClientDisconnected event,
-    Emitter<ConnectionState> emit,
+    Emitter<WebSocketConnectionState> emit,
   ) {
     final updatedClients = state.connectedClients.map((client) {
       if (client.id == event.clientId) {
@@ -148,7 +143,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
 
   void _onTransferProgressUpdated(
     TransferProgressUpdated event,
-    Emitter<ConnectionState> emit,
+    Emitter<WebSocketConnectionState> emit,
   ) {
     emit(state.copyWith(transfers: event.progress));
   }
@@ -157,7 +152,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
   Future<void> close() {
     _statusSubscription?.cancel();
     _transferProgressSubscription?.cancel();
-    _socketService.dispose();
+    repository.dispose();
     return super.close();
   }
 }

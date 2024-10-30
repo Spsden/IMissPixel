@@ -1,7 +1,5 @@
 // lib/presentation/screens/setup/setup_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:i_miss_pixel/presentation/bloc/connection/connection_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -375,7 +373,7 @@ class _SetupScreenState extends State<SetupScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton(
-            onPressed: _validateAndProceed(context),
+            onPressed: _validateAndProceed,
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.all(16),
             ),
@@ -386,7 +384,7 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-  Future<void> _validateAndProceed(BuildContext context) async {
+  Future<void> _validateAndProceed() async {
     if (!isDeviceA && selectedFolders.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -407,8 +405,7 @@ class _SetupScreenState extends State<SetupScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>  BlocProvider(create: (BuildContext context) => ConnectionBloc(_socketService),
-              child: FileSyncScreen(isDeviceA: true,pairCode: pairCode)),
+          builder: (context) =>  FileSyncScreen(isDeviceA: true,pairCode: pairCode),
         ),
       );
     } else {

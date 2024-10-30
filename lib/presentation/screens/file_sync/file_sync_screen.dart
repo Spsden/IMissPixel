@@ -244,7 +244,7 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
       appBar: AppBar(
         title: Text(widget.isDeviceA ? 'Device A (Server)' : 'Device B (Client)'),
       ),
-      body: BlocConsumer<ConnectionBloc,connection_state.ConnectionState>(
+      body: BlocConsumer<ConnectionBloc,connection_state.WebSocketConnectionState>(
         listener: (context,state) {
           if (state.error?.isNotEmpty ?? false){
             _showError(state.error!);
@@ -344,15 +344,30 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
                 ],
 
                 // Connection Status
-                Text('Status: $_connectionStatus'),
+                Text('Status: ${state.status}'),
                 const SizedBox(height: 16),
 
                 // Start Button
                 ElevatedButton(
                   onPressed: _connectionStatus == ConnectionStatus.disconnected
                       ? () {
-                    context.read<ConnectionBloc>().add(
-                      InitializeConnection(isServer: widget.isDeviceA, pairCode: widget.pairCode.toString()),
+                    // Get the repository from bloc
+                    final bloc = context.read<ConnectionBloc>();
+                    final repository = bloc.repository;  // You'll need to expose repository in your bloc
+
+                    // Initialize the repository with required parameters
+                    repository.initialize(
+                      pairCode: widget.pairCode.toString(),
+                      isDeviceA: widget.isDeviceA,
+                      onEvent: bloc.handleWebSocketEvent,  // Pass the existing event handler from your bloc
+                    );
+
+                    // Now add the initialize event
+                    bloc.add(
+                      InitializeConnection(
+                          isServer: widget.isDeviceA,
+                          pairCode: widget.pairCode.toString()
+                      ),
                     );
                   }
                       : null,
