@@ -263,6 +263,7 @@ class WebSocketService {
     try {
       final info = NetworkInfo();
       final localIp = await info.getWifiIP();
+      print(localIp);
       if (localIp == null) return null;
 
       final subnet = localIp.substring(0, localIp.lastIndexOf('.'));

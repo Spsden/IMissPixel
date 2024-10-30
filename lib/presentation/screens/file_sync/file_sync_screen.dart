@@ -81,15 +81,15 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
   //   await _initializeService();
   // }
 
-  Future<bool> _requestPermissions() async {
-    final storage = await Permission.storage.request();
-    if (storage.isPermanentlyDenied) {
-      // Open app settings if permission is permanently denied
-      await openAppSettings();
-      return false;
-    }
-    return storage.isGranted;
-  }
+  // Future<bool> _requestPermissions() async {
+  //   final storage = await Permission.storage.request();
+  //   if (storage.isPermanentlyDenied) {
+  //     // Open app settings if permission is permanently denied
+  //     await openAppSettings();
+  //     return false;
+  //   }
+  //   return storage.isGranted;
+  // }
 
   // Future<void> _initializeService() async {
   //   try {
@@ -271,20 +271,11 @@ class _FileSyncScreenState extends State<FileSyncScreen> {
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                         const SizedBox(height: 8),
-                        if (widget.isDeviceA)
+
                           Text(
                             widget.pairCode ?? 'Generating...',
                             style: Theme.of(context).textTheme.headlineMedium,
                           )
-                        else
-                          TextField(
-                            decoration: const InputDecoration(
-                              hintText: 'Enter pair code',
-                            ),
-                            // onChanged: (value) => setState(() => widget.pairCode = value),
-                            keyboardType: TextInputType.number,
-                            maxLength: 6,
-                          ),
                       ],
                     ),
                   ),
