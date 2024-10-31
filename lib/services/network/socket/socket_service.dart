@@ -611,7 +611,7 @@ class WebSocketService {
   Future<void> stopServer() async {
 
     for (final client in _connectedClients.keys) {
-      onEvent?.call('clientDisconnected',client);
+      // onEvent?.call('clientDisconnected',client);
       client.close();
     }
     _connectedClients.clear();

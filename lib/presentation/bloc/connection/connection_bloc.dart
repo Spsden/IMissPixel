@@ -125,6 +125,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, WebSocketConnectionState> {
     try {
 
       await repository.service.stopServer();
+      emit(state.copyWith(connectedClients: []));
       emit(state.copyWith(serverStatus: ServerStatus.stopped));
     } catch (e) {
       emit(state.copyWith(
